@@ -1,0 +1,33 @@
+@model IpManager.Web.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Address Map";
+    ViewData["Subtitle"] = "Live view of every address on the network";
+}
+
+<div id="livePanel">
+    @await Html.PartialAsync("_LivePanel", Model.Snapshot)
+</div>
+
+<div class="toolbar">
+    <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="search" type="search" placeholder="Search by IP or MAC — e.g. 192.168.1.  or  f4:8e" value="@Model.Search" autocomplete="off" />
+    </div>
+    <div class="filters" id="filters">
+        <button data-status="" class="@(string.IsNullOrEmpty(Model.Status) ? "active" : "")">All</button>
+        <button data-status="Used" class="@(Model.Status == "Used" ? "active" : "")">Used</button>
+        <button data-status="Available" class="@(Model.Status == "Available" ? "active" : "")">Free</button>
+        <button data-status="Conflict" class="@(Model.Status == "Conflict" ? "active" : "")">Conflict</button>
+    </div>
+    <a class="btn-link" asp-controller="Assign" asp-action="Index" style="margin-left:auto">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 5v14M5 12h14"/></svg>
+        Assign IP
+    </a>
+</div>
+
+<div class="panel">
+    <div class="panel-head"><h2>Addresses</h2><span class="meta">sorted numerically</span></div>
+    <div class="panel-body" id="tableWrap">
+        @await Html.PartialAsync("_IpTable", Model.Rows)
+    </div>
+</div>

@@ -1,0 +1,56 @@
+@model IReadOnlyList<IpManager.Core.Dtos.ConflictView>
+@{
+    ViewData["Title"] = "Conflicts";
+    ViewData["Subtitle"] = "Addresses claimed by more than one device";
+    var includeResolved = ViewBag.IncludeResolved as bool? ?? false;
+}
+
+<div class="toolbar">
+    <div class="filters">
+        <a asp-action="Index" asp-route-includeResolved="false"><button class="@(includeResolved ? "" : "active")">Open</button></a>
+        <a asp-action="Index" asp-route-includeResolved="true"><button class="@(includeResolved ? "active" : "")">All</button></a>
+    </div>
+</div>
+
+@if (Model.Count == 0)
+{
+    <div class="panel"><div class="panel-body"><div class="empty"><div class="big">No conflicts</div>Every address is claimed by at most one device.</div></div></div>
+}
+
+@foreach (var c in Model)
+{
+    <div class="panel conflict-card" style="margin-bottom:14px">
+        <div class="panel-head">
+            <span class="ip mono">@c.Ip</span>
+            @if (c.Resolved) { <span class="badge Available" style="margin-left:8px"><i></i>resolved</span> }
+            else { <span class="badge Conflict" style="margin-left:8px"><i></i>open</span> }
+            <div class="grow"></div>
+            <span class="meta">detected @c.DetectedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+        <div class="panel-body" style="padding:0">
+            <table class="mini">
+                <thead><tr><th>Device</th><th>MAC</th><th>Type</th><th>Location</th><th>Last seen</th></tr></thead>
+                <tbody>
+                @foreach (var d in c.Devices)
+                {
+                    <tr class="clickable" data-device="@d.DeviceId" style="cursor:pointer">
+                        <td>@(d.Hostname ?? "unknown")</td>
+                        <td class="mono">@d.Mac</td>
+                        <td>@(d.DeviceType ?? "—")</td>
+                        <td class="muted">@(d.Location ?? "—")</td>
+                        <td class="mono muted">@d.LastSeen.ToLocalTime().ToString("MM-dd HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@section scripts {
+    <script>
+        document.querySelectorAll('tr.clickable[data-device]').forEach(function (tr) {
+            tr.addEventListener('click', function () { window.location = '/Devices/Details/' + tr.dataset.device; });
+        });
+    </script>
+}

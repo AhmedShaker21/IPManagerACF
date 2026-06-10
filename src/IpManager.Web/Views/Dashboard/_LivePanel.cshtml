@@ -1,0 +1,50 @@
+@model IpManager.Core.Dtos.DashboardSnapshot
+@{
+    var s = Model.Stats;
+    string Pct(int n) => s.Total == 0 ? "0%" : $"{Math.Round(100.0 * n / s.Total)}% of range";
+}
+<div class="stat-grid">
+    <div class="stat"><div class="label">Addresses</div><div class="value">@s.Total</div><div class="foot">across @Model.Subnets.Count subnets</div></div>
+    <div class="stat used"><div class="label">In use</div><div class="value">@s.Used</div><div class="foot">@Pct(s.Used)</div></div>
+    <div class="stat available"><div class="label">Available</div><div class="value">@s.Available</div><div class="foot">@Pct(s.Available)</div></div>
+    <div class="stat conflict"><div class="label">Conflicts</div><div class="value">@s.Conflicts</div><div class="foot">@(s.Conflicts == 0 ? "all clear" : "needs attention")</div></div>
+    <div class="stat online"><div class="label">Online now</div><div class="value">@s.Online</div><div class="foot">using internet</div></div>
+    <div class="stat devices"><div class="label">Devices</div><div class="value">@s.Devices</div><div class="foot">seen on network</div></div>
+</div>
+
+<div class="panel">
+    <div class="panel-head">
+        <h2>Address scope</h2>
+        <span class="meta">one cell = one IP · click a used cell for the device</span>
+        <div class="grow"></div>
+        <div class="legend">
+            <span><i class="lg-used"></i>Used</span>
+            <span><i class="lg-available"></i>Free</span>
+            <span><i class="lg-conflict"></i>Conflict</span>
+            <span><i class="lg-online"></i>Online</span>
+        </div>
+    </div>
+    <div class="panel-body">
+        @foreach (var sub in Model.Subnets)
+        {
+            <div class="scope">
+                <div class="panel-head" style="padding:0 0 10px;border:0;">
+                    <span class="mono" style="color:var(--ink-dim)">@sub.Label</span>
+                    <span class="meta">· @sub.Cells.Count(c => c.Status == "Used") used · @sub.Cells.Count(c => c.Status == "Available") free</span>
+                </div>
+                <div class="scope-grid">
+                    @foreach (var c in sub.Cells)
+                    {
+                        <div class="cell"
+                             data-st="@c.Status"
+                             data-online="@(c.Online ? "true" : "false")"
+                             data-ip="@c.Ip"
+                             data-host="@(c.Hostname ?? "")"
+                             data-mac="@(c.Mac ?? "")"
+                             data-device="@(c.DeviceId?.ToString() ?? "")"></div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

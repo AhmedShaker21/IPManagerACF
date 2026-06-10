@@ -1,0 +1,90 @@
+@{
+    var rd = ViewContext.RouteData.Values["controller"]?.ToString() ?? "Dashboard";
+    string Active(string c) => string.Equals(rd, c, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    var mode = Context.RequestServices
+        .GetService(typeof(Microsoft.Extensions.Options.IOptions<IpManager.Core.Options.NetworkOptions>))
+        as Microsoft.Extensions.Options.IOptions<IpManager.Core.Options.NetworkOptions>;
+    var modeName = mode?.Value.Mode.ToString() ?? "Demo";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "IP Operations") · Aircraft Factory</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+<div class="app">
+    <aside class="rail">
+        <div class="brand">
+            <div class="mark">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#34E0A1" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12h6l3-7 1 7h8M4 12l-1 4M20 12l1 4M9 12l-1 5h4l1-5"/>
+                </svg>
+            </div>
+            <div class="name">
+                Aircraft Factory
+                <small>IP Operations</small>
+                <span class="ar">نادي مصنع الطائرات</span>
+            </div>
+        </div>
+
+        <nav class="nav">
+            <p class="eyebrow">Monitor</p>
+            <a class="@Active("Dashboard")" asp-controller="Dashboard" asp-action="Index">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                Address Map
+            </a>
+            <a class="@Active("Conflicts")" asp-controller="Conflicts" asp-action="Index">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>
+                Conflicts
+            </a>
+        </nav>
+
+        <div class="spacer"></div>
+        <span class="mode-chip"><span class="dot"></span>@modeName mode</span>
+    </aside>
+
+    <div class="main">
+        <header class="topbar">
+            <div>
+                <h1>@(ViewData["Title"] ?? "Address Map")</h1>
+                <div class="sub">@(ViewData["Subtitle"] ?? "Live view of every address on the network")</div>
+            </div>
+            <div class="grow"></div>
+            <span class="conn" id="conn"><span class="led"></span><span id="connText">connecting…</span></span>
+            <span class="clock mono" id="clock">--:--:--</span>
+            <button class="bell" id="bell" title="Notifications" aria-label="Notifications">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+                <span class="count" id="bellCount">0</span>
+            </button>
+        </header>
+
+        <main class="content">
+            @RenderBody()
+        </main>
+    </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" aria-label="Notifications">
+    <header>
+        <h3>Notifications</h3>
+        <button id="markRead">Mark all read</button>
+        <button id="closeDrawer" aria-label="Close">✕</button>
+    </header>
+    <div class="feed" id="feed"></div>
+</aside>
+
+<div class="toasts" id="toasts"></div>
+<div class="tip" id="tip"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script src="~/js/dashboard.js" asp-append-version="true"></script>
+@await RenderSectionAsync("scripts", required: false)
+</body>
+</html>

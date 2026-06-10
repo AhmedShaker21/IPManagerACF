@@ -1,0 +1,116 @@
+@model IpManager.Core.Dtos.DeviceDetails
+@{
+    ViewData["Title"] = Model.DeviceName ?? Model.Hostname ?? "Device";
+    ViewData["Subtitle"] = Model.Mac;
+    string Size(long b) => b switch { >= 1_000_000 => $"{b / 1_000_000.0:0.0} MB", >= 1000 => $"{b / 1000.0:0.0} KB", _ => $"{b} B" };
+}
+
+<a class="back" asp-controller="Dashboard" asp-action="Index">← Back to address map</a>
+
+<div class="hero-id">
+    <div class="avatar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2" y="4" width="20" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg>
+    </div>
+    <div>
+        <div style="font-family:var(--font-display);font-size:20px;font-weight:600">@(Model.DeviceName ?? Model.Hostname ?? "Unknown device")</div>
+        <div class="mac">@Model.Mac</div>
+    </div>
+    @if (Model.HasInternet) { <span class="online-dot" style="margin-left:auto"><i></i>online</span> }
+    <a class="btn-link" asp-controller="Assign" asp-action="Index" asp-route-deviceId="@Model.Id" style="@(Model.HasInternet ? "" : "margin-left:auto")">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        Edit details
+    </a>
+</div>
+
+<div class="detail-grid">
+    <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+            <div class="panel-head"><h2>Identity</h2></div>
+            <div class="panel-body">
+                <dl class="kv">
+                    <dt>Current IP</dt><dd class="mono">@(Model.CurrentIp ?? "—")</dd>
+                    <dt>Type</dt><dd>@(Model.DeviceType ?? "—")</dd>
+                    <dt>Department</dt><dd>@(Model.Department ?? "—")</dd>
+                    <dt>Location</dt><dd class="muted">@(Model.Location ?? "—")</dd>
+                    <dt>First seen</dt><dd class="mono muted">@Model.FirstSeen.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
+                    <dt>Last seen</dt><dd class="mono muted">@Model.LastSeen.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</dd>
+                    <dt>Internet</dt><dd>@(Model.HasInternet ? "Active" : "Not observed")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head"><h2>Owner</h2></div>
+            <div class="panel-body">
+                <dl class="kv">
+                    <dt>Name</dt><dd>@(Model.OwnerName ?? "—")</dd>
+                    <dt>Email</dt><dd class="muted">@(Model.OwnerEmail ?? "—")</dd>
+                    <dt>Phone</dt><dd class="muted">@(Model.OwnerPhone ?? "—")</dd>
+                    <dt>Asset tag</dt><dd class="mono">@(Model.AssetTag ?? "—")</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head"><h2>Hardware</h2></div>
+            <div class="panel-body">
+                <dl class="kv">
+                    <dt>CPU</dt><dd>@(Model.Cpu ?? "—")</dd>
+                    <dt>RAM</dt><dd>@(Model.RamGb is int r ? $"{r} GB" : "—")</dd>
+                    <dt>Storage</dt><dd>@(Model.StorageGb is int s ? $"{s} GB" : "—")</dd>
+                    <dt>OS</dt><dd>@(Model.OperatingSystem ?? "—")</dd>
+                </dl>
+                @if (Model.Notes is { Length: > 0 })
+                {
+                    <div style="margin-top:12px;color:var(--ink-dim);font-size:12.5px">@Model.Notes</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel">
+            <div class="panel-head"><h2>IP history</h2><span class="meta">most recent first</span></div>
+            <div class="panel-body" style="padding:0">
+                <table class="mini">
+                    <thead><tr><th>IP</th><th>Source</th><th>From</th><th>To</th><th>State</th></tr></thead>
+                    <tbody>
+                    @foreach (var h in Model.History)
+                    {
+                        <tr>
+                            <td class="mono">@h.Ip</td>
+                            <td>@h.Source</td>
+                            <td class="mono muted">@h.Start.ToLocalTime().ToString("MM-dd HH:mm")</td>
+                            <td class="mono muted">@(h.End?.ToLocalTime().ToString("MM-dd HH:mm") ?? "—")</td>
+                            <td>@(h.Active ? Html.Raw("<span class=\"badge Used\"><i></i>active</span>") : Html.Raw("<span class=\"muted\">closed</span>"))</td>
+                        </tr>
+                    }
+                    @if (Model.History.Count == 0) { <tr><td colspan="5" class="muted" style="padding:18px">No bindings recorded.</td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-head"><h2>Internet activity</h2><span class="meta">attributed via the gateway</span></div>
+            <div class="panel-body" style="padding:0">
+                <table class="mini">
+                    <thead><tr><th>Time</th><th>Destination</th><th>In</th><th>Out</th><th>Source</th></tr></thead>
+                    <tbody>
+                    @foreach (var a in Model.Activity)
+                    {
+                        <tr>
+                            <td class="mono muted">@a.At.ToLocalTime().ToString("MM-dd HH:mm:ss")</td>
+                            <td class="mono">@(a.Destination ?? "—")</td>
+                            <td class="mono">@Size(a.BytesIn)</td>
+                            <td class="mono">@Size(a.BytesOut)</td>
+                            <td>@a.Source</td>
+                        </tr>
+                    }
+                    @if (Model.Activity.Count == 0) { <tr><td colspan="5" class="muted" style="padding:18px">No internet activity attributed to this device.</td></tr> }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

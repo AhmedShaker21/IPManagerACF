@@ -1,0 +1,110 @@
+@model IpManager.Web.ViewModels.AssignViewModel
+@{
+    ViewData["Title"] = "Assign IP";
+    ViewData["Subtitle"] = "Assign an address to a person and record the machine's details";
+    var deviceTypes = new[] { "PC", "Laptop", "Phone", "Printer", "AP", "Server", "IoT", "Other" };
+    var ipError = ViewData.ModelState["Ip"]?.Errors.FirstOrDefault()?.ErrorMessage;
+}
+
+<a class="back" asp-controller="Dashboard" asp-action="Index">← Back to address map</a>
+
+<div class="panel" style="max-width:880px">
+    <div class="panel-head"><h2>Assign / edit</h2><span class="meta">all fields except IP are optional</span></div>
+    <div class="panel-body">
+        <form asp-controller="Assign" asp-action="Index" method="post">
+            @Html.AntiForgeryToken()
+            <div class="form-grid">
+
+                <div class="form-section">Address &amp; machine</div>
+
+                <div class="field">
+                    <label>IP address *</label>
+                    <input class="mono" asp-for="Ip" placeholder="192.168.21.22" />
+                    @if (ipError is not null) { <span class="err">@ipError</span> }
+                </div>
+                <div class="field">
+                    <label>MAC address</label>
+                    <input class="mono" asp-for="Mac" placeholder="AA:BB:CC:11:22:33 (leave blank if unknown)" />
+                    <span class="hint">If known, this links the assignment to a real device.</span>
+                </div>
+
+                <div class="field">
+                    <label>Device name</label>
+                    <input asp-for="DeviceName" placeholder="AF-PC-0073" />
+                </div>
+                <div class="field">
+                    <label>Hostname</label>
+                    <input asp-for="Hostname" placeholder="eng-ahmed-pc" />
+                </div>
+
+                <div class="field">
+                    <label>Device type</label>
+                    <select asp-for="DeviceType">
+                        <option value="">— select —</option>
+                        @foreach (var t in deviceTypes)
+                        {
+                            <option value="@t" selected="@(Model.DeviceType == t)">@t</option>
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Department</label>
+                    <input asp-for="Department" placeholder="Engineering" />
+                </div>
+
+                <div class="field full">
+                    <label>Location (building / switch / port)</label>
+                    <input asp-for="Location" placeholder="Flight Line / Sw-3 / Gi1/0/2" />
+                </div>
+
+                <div class="form-section">Owner</div>
+
+                <div class="field">
+                    <label>Owner name</label>
+                    <input asp-for="OwnerName" placeholder="Eng. Ahmed Shaker" />
+                </div>
+                <div class="field">
+                    <label>Email</label>
+                    <input asp-for="OwnerEmail" placeholder="ahmed.shaker@aoi.example" />
+                </div>
+                <div class="field">
+                    <label>Phone / extension</label>
+                    <input asp-for="OwnerPhone" placeholder="ext. 2241" />
+                </div>
+                <div class="field">
+                    <label>Asset tag</label>
+                    <input asp-for="AssetTag" placeholder="AOI-IT-004812" />
+                </div>
+
+                <div class="form-section">Hardware</div>
+
+                <div class="field">
+                    <label>CPU</label>
+                    <input asp-for="Cpu" placeholder="Intel Core i7-12700" />
+                </div>
+                <div class="field">
+                    <label>Operating system</label>
+                    <input asp-for="OperatingSystem" placeholder="Windows 11 Pro" />
+                </div>
+                <div class="field">
+                    <label>RAM (GB)</label>
+                    <input type="number" min="0" asp-for="RamGb" placeholder="16" />
+                </div>
+                <div class="field">
+                    <label>Storage (GB)</label>
+                    <input type="number" min="0" asp-for="StorageGb" placeholder="512" />
+                </div>
+
+                <div class="field full">
+                    <label>Notes</label>
+                    <textarea asp-for="Notes" placeholder="Dual monitor, docking station, etc."></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Save assignment</button>
+                <a class="btn" asp-controller="Dashboard" asp-action="Index">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>

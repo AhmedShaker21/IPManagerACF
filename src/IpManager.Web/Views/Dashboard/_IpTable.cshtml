@@ -1,0 +1,56 @@
+@model IpManager.Core.Dtos.PagedResult<IpManager.Core.Dtos.IpRow>
+@{
+    string Bytes(DateTime? t) => t is null ? "—" : t.Value.ToLocalTime().ToString("HH:mm:ss");
+}
+<table class="ip-table">
+    <thead>
+        <tr>
+            <th style="width:140px">IP address</th>
+            <th style="width:118px">Status</th>
+            <th>Device</th>
+            <th style="width:90px">Type</th>
+            <th style="width:120px">Department</th>
+            <th>Location</th>
+            <th style="width:90px">Internet</th>
+            <th style="width:90px">Last seen</th>
+        </tr>
+    </thead>
+    <tbody>
+    @if (Model.Items.Count == 0)
+    {
+        <tr><td colspan="8"><div class="empty"><div class="big">No matching addresses</div>Try a different IP fragment or MAC.</div></td></tr>
+    }
+    @foreach (var r in Model.Items)
+    {
+        <tr class="@(r.DeviceId is not null ? "clickable" : "")" @(r.DeviceId is not null ? $"data-device={r.DeviceId}" : "")>
+            <td class="addr">@r.Ip</td>
+            <td><span class="badge @r.Status"><i></i>@r.Status</span></td>
+            <td>
+                @if (r.DeviceName is { Length: > 0 } || r.Mac is { Length: > 0 })
+                {
+                    <div class="host">@(r.DeviceName ?? r.Hostname ?? "unknown")</div>
+                    @if (r.OwnerName is { Length: > 0 }) { <div class="submac" style="color:var(--accent)">@r.OwnerName</div> }
+                    <div class="submac">@r.Mac</div>
+                }
+                else { <span class="muted">—</span> }
+            </td>
+            <td>@(r.DeviceType ?? "—")</td>
+            <td>@(r.Department ?? "—")</td>
+            <td class="muted">@(r.Location ?? "—")</td>
+            <td>
+                @if (r.HasInternet) { <span class="online-dot"><i></i>active</span> }
+                else { <span class="muted">—</span> }
+            </td>
+            <td class="muted mono">@Bytes(r.LastSeen)</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<div class="pager">
+    <div>@Model.Total addresses · page @Model.Page of @Math.Max(1, Model.TotalPages)</div>
+    <div class="btns">
+        @if (Model.Page > 1) { <a href="#" data-page="@(Model.Page - 1)">← Prev</a> } else { <span class="disabled">← Prev</span> }
+        @if (Model.Page < Model.TotalPages) { <a href="#" data-page="@(Model.Page + 1)">Next →</a> } else { <span class="disabled">Next →</span> }
+    </div>
+</div>
